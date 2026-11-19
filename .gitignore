@@ -9,3 +9,4 @@ output*
 assets/object
 MUJOCO_LOG.TXT
 task/
+data/hf/DGN_5k_processed.tar.gz
