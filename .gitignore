@@ -6,7 +6,7 @@ __pycache__/
 
 debug*
 output*
-assets/object
+assets/*
 MUJOCO_LOG.TXT
 task/
 data/hf/DGN_5k_processed.tar.gz

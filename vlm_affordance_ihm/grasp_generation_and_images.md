@@ -75,14 +75,54 @@ offscreen frame:
 MUJOCO_GL=egl python getting_started/render_grasps.py \
   --source output/trial_shadow/succ_grasp \
   --output output/trial_shadow/png \
-  --limit 10
+  --limit 10 \
+  --camera-frame hand --camera-aim object
 ```
 
 Use `--limit 0` for all files. The PNG tree mirrors the `.npy` tree. To
 render a single grasp, pass its `.npy` path to `--source`. To see unvalidated
-results, use `--source output/trial_shadow/grasp_data`. If framing needs
-adjustment, change `--distance` (default: 0.4 metres). The script assumes a
-current-format Shadow-hand grasp and must be run from the repository root.
+results, use `--source output/trial_shadow/grasp_data`. Run the script from
+the repository root. It defaults to `assets/hand/shadow/right.xml`; for
+Artus grasp data, install its hand assets and add
+`--hand-xml assets/hand/artus/right.xml`. The XML must match the joint layout
+in `grasp_qpos`.
+
+### Choose a camera view
+
+The default `--camera-frame hand --camera-aim object` mounts the camera on
+the hand root and turns it toward the object's center of mass for each
+grasp. This keeps the camera position relative to the hand while the aim
+changes with the object. `--camera-pos X Y Z` is in metres in the hand root
+frame. Move it sideways when the hand hides the object, move it farther away
+to fit both in view, and widen `--fovy` (degrees) if needed. For Artus,
+`--camera-pos 0 0.17 0.55 --fovy 65` is a wider starting view.
+
+For a direction that stays fixed relative to the hand, use
+`--camera-aim hand --camera-target X Y Z`. The target coordinates are also
+in the hand root frame. To reproduce the original view centered on the
+object in world coordinates, use `--camera-frame object`. For PNG output,
+this mode uses `--distance` (default 0.4 metres); preview also uses it for
+the starting view.
+
+### Tune the view interactively
+
+Run the preview from a graphical desktop terminal with a grasp file or
+directory. The preview opens the first grasp and does not write PNGs:
+
+```bash
+python getting_started/render_grasps.py \
+  --source output/trial_shadow/succ_grasp \
+  --preview
+```
+
+Drag in the MuJoCo viewer to choose a view, then press **P** in the viewer.
+The terminal prints two sets of hand-local camera arguments. The first
+uses `--camera-aim object` to keep tracking the object in other grasps;
+the second uses `--camera-aim hand` and `--camera-target` to preserve the
+preview's direction relative to the hand. Copy one set into the PNG command
+above. Use the same `--hand-xml` in preview and rendering. If you close the
+viewer without pressing **P**, no camera coordinates are printed. The
+viewer needs a desktop display; use `MUJOCO_GL=egl` for headless PNG rendering.
 
 `MUJOCO_GL=egl` selects headless GPU rendering on Linux. For a 3D editor,
 the following command exports hand and object OBJ files under
