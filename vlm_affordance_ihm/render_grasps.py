@@ -45,8 +45,8 @@ def main():
     parser.add_argument("--width", type=int, default=800)
     parser.add_argument("--height", type=int, default=800)
     parser.add_argument("--distance", type=float, default=0.4, help="Camera distance in metres")
-    parser.add_argument("--hand-xml", type=Path, default=Path("assets/hand/shadow/right.xml"),
-                        help="Hand MJCF path, relative to the Dexonomy root")
+    parser.add_argument("--hand-xml", type=Path,
+                        help="Hand MJCF path (defaults to assets/hand/<hand_name>/right.xml from each grasp)")
     parser.add_argument("--camera-frame", choices=("hand", "object"), default="hand",
                         help="Attach camera to hand or use the original object-centred view")
     parser.add_argument("--camera-aim", choices=("object", "hand"), default="object",
@@ -63,9 +63,6 @@ def main():
         parser.error("--output is required unless --preview is set")
 
     repo = Path.cwd()
-    hand_xml = (repo / args.hand_xml).resolve()
-    if not hand_xml.is_file():
-        parser.error(f"Hand XML not found: {hand_xml}; run from the Dexonomy repository root")
     source = args.source.resolve()
     if not source.exists():
         parser.error(f"Source does not exist: {source}")
@@ -75,6 +72,11 @@ def main():
 
     for grasp_file in files:
         grasp = np.load(grasp_file, allow_pickle=True).item()
+        hand_name = str(grasp.get("hand_name", "shadow"))
+        hand_xml = args.hand_xml or Path("assets/hand") / hand_name / "right.xml"
+        hand_xml = (repo / hand_xml).resolve()
+        if not hand_xml.is_file():
+            parser.error(f"Hand XML not found for {grasp_file}: {hand_xml}; pass --hand-xml explicitly")
         scene_path = Path(str(grasp["scene_path"]))
         if not scene_path.is_absolute():
             scene_path = repo / scene_path
@@ -86,6 +88,12 @@ def main():
             vis_mode="visual",
         )
         hand_qpos = np.asarray(grasp["grasp_qpos"])[0]
+        expected_hand_nq = env._model.nq - len(env._obj_init_qpos)
+        if hand_qpos.size != expected_hand_nq:
+            parser.error(
+                f"{grasp_file}: grasp_qpos has {hand_qpos.size} values, but {hand_xml} "
+                f"requires {expected_hand_nq}; choose an XML matching hand_name={hand_name!r}"
+            )
 
         # Add a background and light to the assembled hand/object scene.
         env._spec.add_texture(

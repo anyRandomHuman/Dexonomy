@@ -72,7 +72,7 @@ scene, set `grasp_qpos`, call MuJoCo forward kinematics, and capture an
 offscreen frame:
 
 ```bash
-MUJOCO_GL=egl python getting_started/render_grasps.py \
+MUJOCO_GL=egl python vlm_affordance_ihm/render_grasps.py \
   --source output/trial_shadow/succ_grasp \
   --output output/trial_shadow/png \
   --limit 10 \
@@ -82,10 +82,9 @@ MUJOCO_GL=egl python getting_started/render_grasps.py \
 Use `--limit 0` for all files. The PNG tree mirrors the `.npy` tree. To
 render a single grasp, pass its `.npy` path to `--source`. To see unvalidated
 results, use `--source output/trial_shadow/grasp_data`. Run the script from
-the repository root. It defaults to `assets/hand/shadow/right.xml`; for
-Artus grasp data, install its hand assets and add
-`--hand-xml assets/hand/artus/right.xml`. The XML must match the joint layout
-in `grasp_qpos`.
+the repository root. It selects `assets/hand/<hand_name>/right.xml` from each
+grasp (or Shadow when `hand_name` is absent). Use `--hand-xml` to specify a
+different XML. The XML must match the joint layout in `grasp_qpos`.
 
 ### Choose a camera view
 
@@ -110,7 +109,7 @@ Run the preview from a graphical desktop terminal with a grasp file or
 directory. The preview opens the first grasp and does not write PNGs:
 
 ```bash
-python getting_started/render_grasps.py \
+python vlm_affordance_ihm/render_grasps.py \
   --source output/trial_shadow/succ_grasp \
   --preview
 ```
